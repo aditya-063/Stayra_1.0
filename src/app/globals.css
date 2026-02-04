@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* Rich, warm background base */
+  --background: #f8f6f2;
+  --foreground: #1c1917;
+
+  /* Brand Colors - Deep Luxury Purple & Gold */
+  --brand-primary: #4a044e;
+  /* Deep purple */
+  --brand-secondary: #fcd34d;
+  /* Muted gold */
+
+  /* Glass System */
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-surface: rgba(255, 255, 255, 0.65);
+  --glass-highlight: rgba(255, 255, 255, 0.8);
+
+  /* Shadows - Diffuse & Multi-layered for depth */
+  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 24px 48px -12px rgba(74, 4, 78, 0.12), 0 8px 16px -8px rgba(0, 0, 0, 0.06);
+  --shadow-float: 0 40px 80px -20px rgba(74, 4, 78, 0.15);
+}
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --color-brand: var(--brand-primary);
+  --color-gold: var(--brand-secondary);
+}
+
+body {
+  background:
+    radial-gradient(at 0% 0%, rgba(252, 211, 77, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(232, 121, 249, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(74, 4, 78, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(252, 211, 77, 0.1) 0px, transparent 50%),
+    var(--background);
+  background-attachment: fixed;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar (iOS style) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 100vh;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Premium 3D Glass Utilities */
+.glass-panel {
+  background: var(--glass-surface);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+
+.glass-3d {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+  backdrop-filter: blur(40px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    var(--shadow-lg),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
+}
+
+.glass-3d-main {
+  background: linear-gradient(145deg, rgba(74, 4, 78, 0.95), rgba(50, 2, 53, 0.98));
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-float);
+}
+
+.glass-3d-collection {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: white;
+}
+
+/* Metallic Text Effect */
+.text-metallic {
+  background: linear-gradient(135deg, #4a044e 0%, #a21caf 50%, #4a044e 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 8s linear infinite;
+}
+
+.text-gold {
+  background: linear-gradient(135deg, #bf8a3d 0%, #fde047 25%, #d97706 50%, #fde047 75%, #bf8a3d 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 6s linear infinite;
+  text-shadow: 0 0 20px rgba(253, 224, 71, 0.3);
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #bf8a3d 0%, #d97706 100%);
+}
+
+.border-gold-subtle {
+  border-color: rgba(253, 224, 71, 0.3);
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Smooth Scale on Hover */
+.hover-scale {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-scale:active {
+  transform: scale(0.98);
+}

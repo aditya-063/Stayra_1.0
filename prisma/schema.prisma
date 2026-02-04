@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ==========================================================
+// LAYER 1: RAW OTA INGESTION (Write-Only)
+// ==========================================================
+
+model OtaPayload {
+  id               BigInt   @id @default(autoincrement())
+  otaName          String   @map("ota_name")
+  endpoint         String
+  requestSignature String   @map("request_signature")
+  response         String   @map("response") // JSONB in Postgres, mapped to String for SQLite
+  fetchedAt        DateTime @map("fetched_at")
+
+  @@map("ota_payloads")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+// ==========================================================
+// LAYER 2: CANONICAL NORMALIZED TABLES (UI Source of Truth)
+// ==========================================================
+
+model Hotel {
+  id              String   @id @default(uuid())
+  canonicalName   String   @map("canonical_name")
+  normalizedName  String   @map("normalized_name")
+  slug            String   @unique
+  address         String?
+  city            String
+  country         String
+  latitude        Decimal?
+  longitude       Decimal?
+  starRating      Int?     @map("star_rating") // CHECK (star_rating BETWEEN 1 AND 5) handled in logic
+  propertyType    String?  @map("property_type")
+  description     String?
+  primaryImageUrl String?  @map("primary_image_url")
+  reviewScore     Decimal? @map("review_score")
+  reviewCount     Int?     @map("review_count")
+  qualityScore    Int?     @map("quality_score")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  otaHotels OtaHotel[]
+  images    HotelImage[]
+  amenities HotelAmenity[]
+  roomTypes RoomType[]
+
+  @@index([city])
+  @@index([slug])
+  @@map("hotels")
+}
+
+model OtaHotel {
+  id              BigInt   @id @default(autoincrement())
+  hotelId         String   @map("hotel_id")
+  hotel           Hotel    @relation(fields: [hotelId], references: [id])
+  otaName         String   @map("ota_name")
+  otaHotelId      String   @map("ota_hotel_id")
+  matchConfidence Decimal? @map("match_confidence")
+
+  @@map("ota_hotels")
+}
+
+model HotelImage {
+  id           BigInt  @id @default(autoincrement())
+  hotelId      String  @map("hotel_id")
+  hotel        Hotel   @relation(fields: [hotelId], references: [id])
+  imageUrl     String  @map("image_url")
+  sourceOta    String? @map("source_ota")
+  isPrimary    Boolean @default(false) @map("is_primary")
+  displayOrder Int?    @map("display_order")
+
+  @@map("hotel_images")
+}
+
+model AmenityMaster {
+  id      Int            @id // SmallInt maps to Int in Prisma
+  name    String
+  iconKey String?        @map("icon_key")
+  hotels  HotelAmenity[]
+
+  @@map("amenities_master")
+}
+
+model HotelAmenity {
+  hotelId   String        @map("hotel_id")
+  hotel     Hotel         @relation(fields: [hotelId], references: [id])
+  amenityId Int           @map("amenity_id")
+  amenity   AmenityMaster @relation(fields: [amenityId], references: [id])
+
+  @@id([hotelId, amenityId])
+  @@map("hotel_amenities")
+}
+
+model RoomType {
+  id               String   @id @default(uuid())
+  hotelId          String   @map("hotel_id")
+  hotel            Hotel    @relation(fields: [hotelId], references: [id])
+  canonicalName    String   @map("canonical_name")
+  roomClass        String?  @map("room_class")
+  maxGuests        Int?     @map("max_guests")
+  bedConfiguration String?  @map("bed_configuration")
+  roomSizeSqft     Int?     @map("room_size_sqft")
+  rates            RoomRate[]
+  aliases          OtaRoomAlias[]
+
+  @@index([hotelId])
+  @@map("room_types")
+}
+
+model OtaRoomAlias {
+  id              BigInt   @id @default(autoincrement())
+  roomTypeId      String   @map("room_type_id")
+  roomType        RoomType @relation(fields: [roomTypeId], references: [id])
+  otaName         String   @map("ota_name")
+  otaRoomName     String   @map("ota_room_name")
+  confidenceScore Decimal? @map("confidence_score")
+
+  @@map("ota_room_aliases")
+}
+
+model RoomRate {
+  id           BigInt   @id @default(autoincrement())
+  roomTypeId   String   @map("room_type_id")
+  roomType     RoomType @relation(fields: [roomTypeId], references: [id])
+  otaName      String   @map("ota_name")
+  checkin      DateTime @map("checkin") // Date type mapping to DateTime in Prisma
+  checkout     DateTime @map("checkout") // Date type
+  basePrice    Decimal  @map("base_price")
+  taxes        Decimal?
+  currency     String
+  refundable   Boolean?
+  availability Int?
+  bookingUrl   String   @map("booking_url")
+  lastUpdated  DateTime @updatedAt @map("last_updated")
+
+  @@index([roomTypeId, otaName])
+  @@index([checkin, checkout])
+  @@map("room_rates")
+}
+
+// ==========================================================
+// LAYER 3: SEARCH & PERFORMANCE TABLES
+// ==========================================================
+
+model SearchSnapshot {
+  searchHash   String   @id @map("search_hash")
+  searchParams String   @map("search_params") // JSONB
+  hotelIds     String   @map("hotel_ids") // UUID[], arrays not supported in SQLite, store as JSON string
+  expiresAt    DateTime @map("expires_at")
+
+  @@index([expiresAt])
+  @@map("search_snapshots")
+}
